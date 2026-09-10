@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#214d35">
+  <title>BEHTA Field Recorder</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div><div class="eyebrow">Habitat baseline survey</div><h1>BEHTA Field Recorder</h1></div>
+  <span id="onlineState" class="pill">Checking…</span>
+</header>
+<main>
+  <nav class="tabs">
+    <button class="tab active" data-tab="survey">Survey</button>
+    <button class="tab" data-tab="quadrats">Quadrats <span id="quadratCount">0</span></button>
+    <button class="tab" data-tab="map">Map</button>
+    <button class="tab" data-tab="records">Saved</button>
+  </nav>
+
+  <section id="tab-survey" class="tab-panel active">
+    <div class="panel">
+      <div class="section-head"><div><div class="eyebrow">1 · Survey setup</div><h2>Site and habitat</h2></div><button id="newSurvey" class="btn ghost" type="button">New</button></div>
+      <form id="surveyForm">
+        <input id="surveyId" type="hidden">
+        <div class="grid two">
+          <label>Site name<input id="site" required placeholder="e.g. Blackhall Rocks"></label>
+          <label>Parcel / compartment<input id="parcel" placeholder="Parcel or compartment ID"></label>
+          <label>Agreement / reference<input id="agreementRef" placeholder="Optional"></label>
+          <label>Surveyor<input id="surveyor" autocomplete="name"></label>
+          <label>Survey date<input id="surveyDate" type="date" required></label>
+          <label>Weather<input id="weather" placeholder="Dry, overcast, light wind"></label>
+        </div>
+        <div class="grid two">
+          <label>BEHTA habitat code<input id="habitatCode" placeholder="e.g. G09"></label>
+          <label>Habitat / feature name<input id="habitatName" placeholder="e.g. species-rich grassland"></label>
+          <label>Feature extent<input id="featureExtent" placeholder="Area / length and units"></label>
+          <label>Survey status<select id="status"><option>Draft</option><option>Fieldwork complete</option><option>Checked</option></select></label>
+        </div>
+        <label>Current management<textarea id="management" rows="3" placeholder="Grazing, cutting, scrub management etc."></textarea></label>
+        <label>Pressures / influences<textarea id="pressures" rows="3" placeholder="Scrub, nutrient enrichment, poaching, invasive species etc."></textarea></label>
+        <div class="grid two">
+          <label>Overall condition<select id="overallCondition"><option value="">Not assessed</option><option>Favourable</option><option>Unfavourable</option><option>Not classifiable</option></select></label>
+          <label>Condition notes<textarea id="conditionNotes" rows="2"></textarea></label>
+        </div>
+        <div class="notice">This version records BEHTA field evidence but does not automatically assign official habitat-condition classes. Habitat-specific Natural England thresholds will only be added where verified from the relevant BEHTA guidance.</div>
+        <div class="sticky-actions"><button id="saveSurvey" class="btn primary" type="submit">Save survey</button><button id="goQuadrats" class="btn" type="button">Add quadrats</button></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="tab-quadrats" class="tab-panel">
+    <div class="panel">
+      <div class="section-head"><div><div class="eyebrow">2 · Field sampling</div><h2>Quadrats</h2></div><button id="addQuadrat" class="btn primary" type="button">+ Add quadrat</button></div>
+      <div id="quadratList" class="cards"></div>
+      <div id="quadratEditor" class="editor hidden">
+        <div class="section-head"><h3 id="quadratTitle">Quadrat</h3><button id="closeQuadrat" class="btn ghost" type="button">Close</button></div>
+        <div class="button-row"><button id="gpsButton" class="btn primary" type="button">Use GPS</button><button id="clearGps" class="btn ghost" type="button">Clear location</button></div>
+        <p id="gpsStatus" class="hint">Record the quadrat centre using GPS.</p>
+        <div class="grid three">
+          <label>Latitude<input id="qLat" type="number" step="any" inputmode="decimal"></label>
+          <label>Longitude<input id="qLng" type="number" step="any" inputmode="decimal"></label>
+          <label>Accuracy (m)<input id="qAccuracy" type="number" step="any" readonly></label>
+          <label>Grid reference<input id="qGridRef" placeholder="Optional"></label>
+          <label>Quadrat size<input id="qSize" placeholder="e.g. 1 × 1 m"></label>
+          <label>Vegetation height (cm)<input id="qHeight" type="number" min="0" inputmode="decimal"></label>
+          <label>Bare ground (%)<input id="qBare" type="number" min="0" max="100" inputmode="decimal"></label>
+          <label>Scrub (%)<input id="qScrub" type="number" min="0" max="100" inputmode="decimal"></label>
+          <label>Litter (%)<input id="qLitter" type="number" min="0" max="100" inputmode="decimal"></label>
+        </div>
+        <label>Quadrat photo<input id="qPhoto" type="file" accept="image/*" capture="environment"></label>
+        <img id="qPhotoPreview" class="photo hidden" alt="Quadrat photo preview">
+        <div class="species-head"><h3>Species</h3><button id="addSpecies" class="btn" type="button">+ Species</button></div>
+        <div id="speciesRows"></div>
+        <label>Quadrat notes<textarea id="qNotes" rows="3"></textarea></label>
+        <div class="sticky-actions"><button id="saveQuadrat" class="btn primary" type="button">Save quadrat</button><button id="saveNext" class="btn" type="button">Save & next quadrat</button><button id="deleteQuadrat" class="btn danger" type="button">Delete</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-map" class="tab-panel"><div class="panel"><div class="section-head"><div><div class="eyebrow">Spatial check</div><h2>Quadrat map</h2></div><span id="mapCount" class="pill">0 points</span></div><div id="map" class="map"></div></div></section>
+
+  <section id="tab-records" class="tab-panel"><div class="panel"><div class="section-head"><div><div class="eyebrow">Database</div><h2>Saved surveys</h2></div><button id="refreshRecords" class="btn ghost">Refresh</button></div><div class="button-row"><button id="exportCsv" class="btn">Export CSV</button><button id="exportGeo" class="btn">Export GeoJSON</button></div><div id="savedList" class="cards"></div></div></section>
+</main>
+<footer>Field records are saved to the app server when connected. CSV and GeoJSON exports are suitable for subsequent use in spreadsheets and GIS.</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="/app.js" defer></script>
+</body>
+</html>
