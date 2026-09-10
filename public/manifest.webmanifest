@@ -1,0 +1,9 @@
+{
+  "name": "BEHTA Field Recorder",
+  "short_name": "BEHTA",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef3ef",
+  "theme_color": "#214d35",
+  "description": "Mobile field recorder for BEHTA habitat baseline surveys and quadrats."
+}
