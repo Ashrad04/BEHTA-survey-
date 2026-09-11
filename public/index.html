@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#214d35">
-  <title>BEHTA Field Recorder</title>
+  <meta name="theme-color" content="#163f2b">
+  <title>Grassland BEHTA Field Recorder</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
@@ -12,20 +12,28 @@
 </head>
 <body>
 <header class="topbar">
-  <div><div class="eyebrow">Habitat baseline survey</div><h1>BEHTA Field Recorder</h1></div>
-  <span id="onlineState" class="pill">Checking…</span>
+  <div class="brand"><div class="brand-mark">G</div><div><div class="eyebrow">Grassland field assessment</div><h1>BEHTA Recorder</h1></div></div>
+  <span id="onlineState" class="pill status-pill">Checking…</span>
 </header>
 <main>
-  <nav class="tabs">
-    <button class="tab active" data-tab="survey">Survey</button>
-    <button class="tab" data-tab="quadrats">Quadrats <span id="quadratCount">0</span></button>
-    <button class="tab" data-tab="map">Map</button>
-    <button class="tab" data-tab="records">Saved</button>
+  <div id="activeSurveyBar" class="active-survey hidden"><div><strong id="activeSurveyName">Current survey</strong><span id="activeSurveyMeta"></span></div><div class="progress-track"><span id="surveyProgress"></span></div></div>
+
+  <nav class="tabs" aria-label="App sections">
+    <button class="tab active" data-tab="survey"><span class="tab-icon">⌂</span>Survey</button>
+    <button class="tab" data-tab="quadrats"><span class="tab-icon">▦</span>Quadrats <span id="quadratCount" class="tab-count">0</span></button>
+    <button class="tab" data-tab="map"><span class="tab-icon">⌖</span>Map</button>
+    <button class="tab" data-tab="stats"><span class="tab-icon">▥</span>Stats</button>
+    <button class="tab" data-tab="records"><span class="tab-icon">≡</span>Saved</button>
   </nav>
 
   <section id="tab-survey" class="tab-panel active">
+    <div class="hero-card">
+      <div><div class="eyebrow">Field survey</div><h2>Grassland baseline recording</h2><p>Set up the parcel once, then move quickly through repeat quadrats using a survey-wide species list.</p></div>
+      <button id="newSurvey" class="btn light" type="button">+ New survey</button>
+    </div>
+
     <div class="panel">
-      <div class="section-head"><div><div class="eyebrow">1 · Survey setup</div><h2>Site and habitat</h2></div><button id="newSurvey" class="btn ghost" type="button">New</button></div>
+      <div class="section-head"><div><div class="step">1</div><div><div class="eyebrow">Survey setup</div><h2>Site & grassland</h2></div></div></div>
       <form id="surveyForm">
         <input id="surveyId" type="hidden">
         <div class="grid two">
@@ -36,58 +44,96 @@
           <label>Survey date<input id="surveyDate" type="date" required></label>
           <label>Weather<input id="weather" placeholder="Dry, overcast, light wind"></label>
         </div>
-        <div class="grid two">
-          <label>BEHTA habitat code<input id="habitatCode" placeholder="e.g. G09"></label>
-          <label>Habitat / feature name<input id="habitatName" placeholder="e.g. species-rich grassland"></label>
-          <label>Feature extent<input id="featureExtent" placeholder="Area / length and units"></label>
+
+        <div class="subhead"><div><h3>Grassland type</h3><p>Selecting a type displays practical field cues. Official BEHTA thresholds are only shown where verified.</p></div></div>
+        <div id="grasslandCards" class="habitat-cards">
+          <button type="button" class="habitat-card" data-habitat="Neutral grassland"><span class="habitat-symbol">✿</span><strong>Neutral</strong><small>Mesotrophic / species-rich neutral grassland</small></button>
+          <button type="button" class="habitat-card" data-habitat="Calcareous grassland"><span class="habitat-symbol">△</span><strong>Calcareous</strong><small>Base-rich, often short and herb-rich turf</small></button>
+          <button type="button" class="habitat-card" data-habitat="Acid grassland"><span class="habitat-symbol">◇</span><strong>Acid</strong><small>Acidic soils, fine grasses and acid-tolerant herbs</small></button>
+          <button type="button" class="habitat-card" data-habitat="Marshy grassland"><span class="habitat-symbol">≈</span><strong>Marshy</strong><small>Wet grassland, rushes, sedges and wetland herbs</small></button>
+          <button type="button" class="habitat-card" data-habitat="Semi-improved grassland"><span class="habitat-symbol">○</span><strong>Semi-improved</strong><small>Modified sward retaining ecological interest</small></button>
+        </div>
+        <div class="grid two compact-grid">
+          <label>BEHTA habitat code<input id="habitatCode" placeholder="Enter verified code if known"></label>
+          <label>Habitat / feature name<input id="habitatName" placeholder="Select above or enter manually"></label>
+          <label>Feature extent<input id="featureExtent" placeholder="Area and units"></label>
           <label>Survey status<select id="status"><option>Draft</option><option>Fieldwork complete</option><option>Checked</option></select></label>
         </div>
-        <label>Current management<textarea id="management" rows="3" placeholder="Grazing, cutting, scrub management etc."></textarea></label>
-        <label>Pressures / influences<textarea id="pressures" rows="3" placeholder="Scrub, nutrient enrichment, poaching, invasive species etc."></textarea></label>
-        <div class="grid two">
-          <label>Overall condition<select id="overallCondition"><option value="">Not assessed</option><option>Favourable</option><option>Unfavourable</option><option>Not classifiable</option></select></label>
-          <label>Condition notes<textarea id="conditionNotes" rows="2"></textarea></label>
-        </div>
-        <div class="notice">This version records BEHTA field evidence but does not automatically assign official habitat-condition classes. Habitat-specific Natural England thresholds will only be added where verified from the relevant BEHTA guidance.</div>
-        <div class="sticky-actions"><button id="saveSurvey" class="btn primary" type="submit">Save survey</button><button id="goQuadrats" class="btn" type="button">Add quadrats</button></div>
+
+        <div id="habitatGuidance" class="guidance-card hidden"><div class="guidance-title"><span>Field cues</span><small>Survey aid, not automatic BEHTA scoring</small></div><div id="guidanceText"></div></div>
+
+        <details class="details-card"><summary>Management, pressures & condition</summary>
+          <label>Current management<textarea id="management" rows="3" placeholder="Grazing, cutting, scrub management etc."></textarea></label>
+          <label>Pressures / influences<textarea id="pressures" rows="3" placeholder="Scrub, nutrient enrichment, poaching, invasive species etc."></textarea></label>
+          <div class="grid two">
+            <label>Overall condition<select id="overallCondition"><option value="">Not assessed</option><option>Favourable</option><option>Unfavourable</option><option>Not classifiable</option></select></label>
+            <label>Condition notes<textarea id="conditionNotes" rows="2"></textarea></label>
+          </div>
+        </details>
+        <div class="notice"><strong>Evidence first.</strong> This app records field evidence and survey statistics. It does not infer an official Natural England condition class unless the relevant grassland rule has been explicitly verified.</div>
+        <div class="sticky-actions"><button id="saveSurvey" class="btn primary" type="submit">Save survey</button><button id="goQuadrats" class="btn secondary" type="button">Start quadrats →</button></div>
       </form>
     </div>
   </section>
 
   <section id="tab-quadrats" class="tab-panel">
     <div class="panel">
-      <div class="section-head"><div><div class="eyebrow">2 · Field sampling</div><h2>Quadrats</h2></div><button id="addQuadrat" class="btn primary" type="button">+ Add quadrat</button></div>
-      <div id="quadratList" class="cards"></div>
+      <div class="section-head"><div><div class="step">2</div><div><div class="eyebrow">Field mode</div><h2>Quadrats</h2></div></div><button id="addQuadrat" class="btn primary" type="button">+ Quadrat</button></div>
+      <div class="field-tip">Once a species is entered, it joins this survey's species pool. In later quadrats, simply tap species to mark presence.</div>
+      <div id="quadratList" class="quadrat-cards"></div>
+
       <div id="quadratEditor" class="editor hidden">
-        <div class="section-head"><h3 id="quadratTitle">Quadrat</h3><button id="closeQuadrat" class="btn ghost" type="button">Close</button></div>
-        <div class="button-row"><button id="gpsButton" class="btn primary" type="button">Use GPS</button><button id="clearGps" class="btn ghost" type="button">Clear location</button></div>
-        <p id="gpsStatus" class="hint">Record the quadrat centre using GPS.</p>
-        <div class="grid three">
-          <label>Latitude<input id="qLat" type="number" step="any" inputmode="decimal"></label>
-          <label>Longitude<input id="qLng" type="number" step="any" inputmode="decimal"></label>
-          <label>Accuracy (m)<input id="qAccuracy" type="number" step="any" readonly></label>
-          <label>Grid reference<input id="qGridRef" placeholder="Optional"></label>
-          <label>Quadrat size<input id="qSize" placeholder="e.g. 1 × 1 m"></label>
-          <label>Vegetation height (cm)<input id="qHeight" type="number" min="0" inputmode="decimal"></label>
-          <label>Bare ground (%)<input id="qBare" type="number" min="0" max="100" inputmode="decimal"></label>
-          <label>Scrub (%)<input id="qScrub" type="number" min="0" max="100" inputmode="decimal"></label>
-          <label>Litter (%)<input id="qLitter" type="number" min="0" max="100" inputmode="decimal"></label>
-        </div>
-        <label>Quadrat photo<input id="qPhoto" type="file" accept="image/*" capture="environment"></label>
+        <div class="quadrat-banner"><div><div class="eyebrow">Active field record</div><h2 id="quadratTitle">Quadrat</h2><div id="quadratLiveSummary" class="meta"></div></div><button id="closeQuadrat" class="icon-btn" type="button" aria-label="Close quadrat">×</button></div>
+
+        <div class="quick-actions"><button id="gpsButton" class="quick-button gps" type="button"><span>⌖</span><strong>Capture GPS</strong><small id="gpsStatus">No location</small></button><label class="quick-button photo-button"><span>▣</span><strong>Add photo</strong><small>Camera</small><input id="qPhoto" class="visually-hidden" type="file" accept="image/*" capture="environment"></label></div>
         <img id="qPhotoPreview" class="photo hidden" alt="Quadrat photo preview">
-        <div class="species-head"><h3>Species</h3><button id="addSpecies" class="btn" type="button">+ Species</button></div>
-        <div id="speciesRows"></div>
-        <label>Quadrat notes<textarea id="qNotes" rows="3"></textarea></label>
-        <div class="sticky-actions"><button id="saveQuadrat" class="btn primary" type="button">Save quadrat</button><button id="saveNext" class="btn" type="button">Save & next quadrat</button><button id="deleteQuadrat" class="btn danger" type="button">Delete</button></div>
+
+        <details class="details-card location-details"><summary>Location & structure</summary>
+          <div class="button-row"><button id="clearGps" class="btn ghost" type="button">Clear location</button></div>
+          <div class="grid three">
+            <label>Latitude<input id="qLat" type="number" step="any" inputmode="decimal"></label>
+            <label>Longitude<input id="qLng" type="number" step="any" inputmode="decimal"></label>
+            <label>Accuracy (m)<input id="qAccuracy" type="number" step="any" readonly></label>
+            <label>Grid reference<input id="qGridRef" placeholder="Optional"></label>
+            <label>Quadrat size<input id="qSize" placeholder="e.g. 1 × 1 m"></label>
+            <label>Vegetation height (cm)<input id="qHeight" type="number" min="0" inputmode="decimal"></label>
+            <label>Bare ground (%)<input id="qBare" type="number" min="0" max="100" inputmode="decimal"></label>
+            <label>Scrub (%)<input id="qScrub" type="number" min="0" max="100" inputmode="decimal"></label>
+            <label>Litter (%)<input id="qLitter" type="number" min="0" max="100" inputmode="decimal"></label>
+          </div>
+        </details>
+
+        <div class="species-panel">
+          <div class="species-head"><div><div class="eyebrow">Presence / absence</div><h3>Species</h3></div><span id="poolCount" class="pill">0 in pool</span></div>
+          <div class="species-toolbar"><input id="speciesFilter" type="search" placeholder="Filter survey species…"><select id="speciesSort"><option value="frequency">Most frequent</option><option value="alpha">A–Z</option><option value="indicator">Indicators first</option></select></div>
+          <div id="speciesPool" class="species-pool"></div>
+          <button id="addSpecies" class="btn add-species" type="button">+ Add a new species to this survey</button>
+          <div id="newSpeciesForm" class="new-species hidden">
+            <div class="grid two"><label>Common name<input id="newCommon" autocomplete="off" placeholder="e.g. Lady's bedstraw"></label><label>Scientific name<input id="newScientific" autocomplete="off" placeholder="Optional"></label></div>
+            <label>Indicator status<select id="newIndicator"><option value="Neutral / not set">Not set</option><option>Positive</option><option>Negative</option></select></label>
+            <div class="button-row"><button id="confirmSpecies" class="btn primary" type="button">Add & mark present</button><button id="cancelSpecies" class="btn ghost" type="button">Cancel</button></div>
+          </div>
+        </div>
+
+        <label>Quadrat notes<textarea id="qNotes" rows="3" placeholder="Only record additional field observations where useful"></textarea></label>
+        <div class="sticky-actions field-actions"><button id="saveQuadrat" class="btn secondary" type="button">Save</button><button id="saveNext" class="btn primary" type="button">Save & next →</button><button id="deleteQuadrat" class="btn danger ghost-danger" type="button">Delete</button></div>
       </div>
     </div>
   </section>
 
-  <section id="tab-map" class="tab-panel"><div class="panel"><div class="section-head"><div><div class="eyebrow">Spatial check</div><h2>Quadrat map</h2></div><span id="mapCount" class="pill">0 points</span></div><div id="map" class="map"></div></div></section>
+  <section id="tab-map" class="tab-panel"><div class="panel"><div class="section-head"><div><div><div class="eyebrow">Spatial check</div><h2>Quadrat map</h2></div></div><span id="mapCount" class="pill">0 points</span></div><div id="map" class="map"></div><div class="field-tip">Use the map to check that sampling locations are spatially distributed as intended rather than clustered around access points.</div></div></section>
 
-  <section id="tab-records" class="tab-panel"><div class="panel"><div class="section-head"><div><div class="eyebrow">Database</div><h2>Saved surveys</h2></div><button id="refreshRecords" class="btn ghost">Refresh</button></div><div class="button-row"><button id="exportCsv" class="btn">Export CSV</button><button id="exportGeo" class="btn">Export GeoJSON</button></div><div id="savedList" class="cards"></div></div></section>
+  <section id="tab-stats" class="tab-panel">
+    <div class="stats-hero"><div><div class="eyebrow">Live survey summary</div><h2>Statistics</h2><p id="statsSurveyName">No active survey</p></div></div>
+    <div id="statCards" class="stat-cards"></div>
+    <div class="panel stats-panel"><div class="section-head"><div><div><div class="eyebrow">Across quadrats</div><h2>Species frequency</h2></div></div></div><div id="frequencyTable" class="frequency-list"></div></div>
+    <div class="panel stats-panel"><div class="section-head"><div><div><div class="eyebrow">Sampling</div><h2>Richness by quadrat</h2></div></div></div><div id="richnessChart" class="richness-chart"></div></div>
+    <div class="panel stats-panel"><div class="section-head"><div><div><div class="eyebrow">Interpretation aid</div><h2>Indicators</h2></div></div></div><div id="indicatorStats"></div><div class="notice mini">Frequency is calculated from presence across completed quadrats. It should not automatically be treated as equivalent to an official DAFOR category or BEHTA condition threshold.</div></div>
+  </section>
+
+  <section id="tab-records" class="tab-panel"><div class="panel"><div class="section-head"><div><div><div class="eyebrow">Database</div><h2>Saved surveys</h2></div></div><button id="refreshRecords" class="btn ghost">Refresh</button></div><div class="button-row export-row"><button id="exportCsv" class="btn secondary">Export CSV</button><button id="exportGeo" class="btn secondary">Export GeoJSON</button></div><div id="savedList" class="quadrat-cards"></div></div></section>
 </main>
-<footer>Field records are saved to the app server when connected. CSV and GeoJSON exports are suitable for subsequent use in spreadsheets and GIS.</footer>
+<footer>Grassland BEHTA field recorder · GPS coordinates are stored in WGS84 · CSV and GeoJSON exports can be used in spreadsheets and GIS.</footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="/app.js" defer></script>
 </body>
