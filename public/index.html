@@ -4,16 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#163f2b">
-  <title>Grassland BEHTA Field Recorder</title>
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Field Surveys">
+  <title>Grassland Field Surveys</title>
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/app-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/app-icon.svg">
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/behta-enhancements.css">
+  <link rel="stylesheet" href="/field-upgrades.css">
+  <link rel="stylesheet" href="/multi-survey.css">
+  <link rel="stylesheet" href="/species-id.css">
 </head>
 <body>
 <header class="topbar">
-  <div class="brand"><div class="brand-mark">G</div><div><div class="eyebrow">Grassland field assessment</div><h1>BEHTA Recorder</h1></div></div>
+  <div class="brand"><div class="brand-mark">G</div><div><div class="eyebrow">Grassland field surveys</div><h1>Field Surveys</h1></div></div>
   <span id="onlineState" class="pill status-pill">Checking…</span>
 </header>
 <main>
@@ -134,9 +143,16 @@
 
   <section id="tab-records" class="tab-panel"><div class="panel"><div class="section-head"><div><div><div class="eyebrow">Database</div><h2>Saved surveys</h2></div></div><button id="refreshRecords" class="btn ghost">Refresh</button></div><div class="button-row export-row"><button id="exportCsv" class="btn secondary">Export CSV</button><button id="exportGeo" class="btn secondary">Export GeoJSON</button></div><div id="savedList" class="quadrat-cards"></div></div></section>
 </main>
-<footer>Grassland BEHTA field recorder · GPS coordinates are stored in WGS84 · CSV and GeoJSON exports can be used in spreadsheets and GIS.</footer>
+<footer>Grassland field surveys · GPS coordinates are stored in WGS84 and converted to British National Grid where available · CSV and GeoJSON exports can be used in spreadsheets and GIS.</footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <script src="/app.js" defer></script>
 <script src="/behta-enhancements.js" defer></script>
+<script src="/field-upgrades.js" defer></script>
+<script src="/confidence-persistence.js" defer></script>
+<script src="/bng.js" defer></script>
+<script src="/rapid-protocols.js" defer></script>
+<script src="/multi-survey.js" defer></script>
+<script src="/species-id.js" defer></script>
+<script src="/pwa.js" defer></script>
 </body>
 </html>
