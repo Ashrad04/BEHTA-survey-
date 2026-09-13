@@ -4,10 +4,11 @@
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   function loadUiUpgrades(){
-    if(!document.querySelector('link[href="/ui-upgrades.css"]')){
-      const link=document.createElement('link');link.rel='stylesheet';link.href='/ui-upgrades.css';document.head.appendChild(link);
-    }
-    ['/term-illustrations.js','/app-navigation.js'].forEach(src=>{
+    ['/ui-upgrades.css','/app-hotfixes.css'].forEach(href=>{
+      if(document.querySelector(`link[href="${href}"]`)) return;
+      const link=document.createElement('link');link.rel='stylesheet';link.href=href;document.head.appendChild(link);
+    });
+    ['/term-illustrations.js','/app-hotfixes.js','/app-navigation.js'].forEach(src=>{
       if(document.querySelector(`script[src="${src}"]`)) return;
       const script=document.createElement('script');script.src=src;script.async=false;document.body.appendChild(script);
     });
