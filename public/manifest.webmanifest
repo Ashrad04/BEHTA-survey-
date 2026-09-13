@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "BEHTA Grassland Field Recorder",
-  "short_name": "BEHTA",
-  "description": "Mobile grassland BEHTA field recorder for survey setup, quadrats, species frequency, mapping and field review.",
+  "name": "Grassland Field Surveys",
+  "short_name": "Field Surveys",
+  "description": "Mobile grassland survey hub with BEHTA and rapid grassland assessment workflows.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -12,16 +12,11 @@
   "orientation": "any",
   "categories": ["productivity", "utilities", "education"],
   "icons": [
-    {
-      "src": "/app-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+    {"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
   ],
   "shortcuts": [
-    {"name":"Survey setup","short_name":"Survey","url":"/#survey","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
-    {"name":"Quadrats","short_name":"Quadrats","url":"/#quadrats","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
-    {"name":"Statistics","short_name":"Stats","url":"/#stats","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]}
+    {"name":"Survey types","short_name":"Surveys","url":"/","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
+    {"name":"BEHTA grassland","short_name":"BEHTA","url":"/#behta","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
+    {"name":"Rapid assessment","short_name":"Rapid","url":"/#rapid","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]}
   ]
 }
