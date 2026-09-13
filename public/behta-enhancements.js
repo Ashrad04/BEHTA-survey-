@@ -42,7 +42,6 @@ function classifyBehtaSpecies(species){
   return { role:'other', indicator:'Neutral / not set', label:'Other species' };
 }
 
-// Override normalisation so verified classifications are applied consistently on save/load.
 const baseNormaliseSpecies = normaliseSpecies;
 normaliseSpecies = function(s){
   const item = baseNormaliseSpecies(s || {});
@@ -70,7 +69,6 @@ updateHabitatSelection = function(){
       text.innerHTML = `<div class="verified-rule"><div><span class="verified-badge">Verified BEHTA G02</span><strong>${BEHTA_G02.threshold}</strong></div><p>Typical context: moderately species-rich, usually 8–15 species/m². Wildflower and sedge cover is usually &lt;30% (excluding white clover, creeping buttercup and injurious weeds); rye-grass cover is generally &lt;25%.</p><p class="rule-caution">Quadrat frequency is shown as evidence only. The app does not automatically convert frequency across quadrats into the BEHTA term “occasional”.</p></div>`;
     }
   }
-  // Reclassify already-recorded species when habitat selection changes.
   if (typeof currentSurvey !== 'undefined' && currentSurvey?.quadrats) {
     currentSurvey.quadrats.forEach(q => { q.species = (q.species || []).map(normaliseSpecies); });
     rebuildSpeciesPool();
@@ -155,3 +153,12 @@ function installFieldEnhancements(){
 }
 
 document.addEventListener('DOMContentLoaded',installFieldEnhancements);
+
+(function loadSurveyHub(){
+  const styles=['/field-upgrades.css','/multi-survey.css'];
+  styles.forEach(href=>{if(!document.querySelector(`link[href="${href}"]`)){const l=document.createElement('link');l.rel='stylesheet';l.href=href;document.head.appendChild(l)}});
+  const scripts=['/field-upgrades.js','/confidence-persistence.js','/pwa.js','/bng.js','/rapid-protocols.js','/multi-survey.js'];
+  let chain=Promise.resolve();
+  scripts.forEach(src=>{chain=chain.then(()=>new Promise((resolve,reject)=>{if(document.querySelector(`script[src="${src}"]`)){resolve();return}const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=reject;document.body.appendChild(s)}))});
+  chain.then(()=>{if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{})}).catch(err=>console.error('Survey hub failed to load',err));
+})();
