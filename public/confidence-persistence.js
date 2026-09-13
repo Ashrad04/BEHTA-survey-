@@ -13,8 +13,9 @@
   }
   normaliseSpecies=function(source){
     const raw=source||{};
-    const confidence=raw.confidence||readConfidence(raw.notes)||'Not assessed';
-    const item=priorNormalise({...raw,confidence});
+    const stored=raw.confidence||readConfidence(raw.notes);
+    const item=priorNormalise(stored?{...raw,confidence:stored}:raw);
+    const confidence=item.confidence||stored||'Not assessed';
     item.confidence=confidence;
     const plain=stripMarker(item.notes);
     item.notes=`${plain}${plain?'\n':''}[ID confidence: ${confidence}]`;
