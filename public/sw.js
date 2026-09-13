@@ -1,4 +1,4 @@
-const CACHE='behta-field-v8';
+const CACHE='behta-field-v9';
 const SHELL=['/','/index.html','/styles.css','/behta-enhancements.css','/field-upgrades.css','/multi-survey.css','/species-id.css','/ui-upgrades.css','/app-hotfixes.css','/app.js','/behta-enhancements.js','/field-upgrades.js','/confidence-persistence.js','/bng.js','/rapid-protocols.js','/multi-survey.js','/species-id.js','/term-illustrations.js','/app-hotfixes.js','/app-navigation.js','/pwa.js','/manifest.webmanifest','/app-icon.svg','/field-surveys-icon.svg','/offline.html'];
 
 self.addEventListener('install',event=>{
