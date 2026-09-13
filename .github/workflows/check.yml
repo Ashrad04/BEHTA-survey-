@@ -19,5 +19,7 @@ jobs:
       - run: node --check public/rapid-protocols.js
       - run: node --check public/multi-survey.js
       - run: node --check public/species-id.js
+      - run: node --check public/term-illustrations.js
+      - run: node --check public/app-navigation.js
       - run: node --check public/sw.js
       - run: node -e "JSON.parse(require('fs').readFileSync('public/manifest.webmanifest','utf8')); console.log('manifest ok')"
