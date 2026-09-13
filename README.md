@@ -1,27 +1,27 @@
 # BEHTA Field Recorder
 
-Mobile-first field recorder for Baseline Evaluation of Higher Tier Agreements (BEHTA)-style habitat baseline surveys.
+Mobile-first grassland field recorder for Baseline Evaluation of Higher Tier Agreements (BEHTA)-style habitat baseline surveys.
 
 ## Current functions
 
-- Site, parcel, agreement, surveyor and habitat metadata
-- Multiple numbered quadrats per survey
-- High-accuracy device GPS and accuracy value per quadrat
-- Quadrat photographs
-- Vegetation height, bare ground, scrub and litter fields
-- Species lists with abundance and indicator status
-- Survey and quadrat notes
-- Quadrat map
-- Persistent server storage using PostgreSQL when `DATABASE_URL` is supplied, with local JSON fallback
-- CSV export of survey/quadrat/species data
-- GeoJSON export of quadrat locations for GIS
-- Installable PWA shell
+- Site, parcel, agreement, surveyor and grassland metadata
+- Grassland-type field guidance with automatic rules only where verified
+- Multiple numbered quadrats with high-accuracy GPS, photographs and vegetation structure fields
+- Survey-wide species pool so later quadrats use one-tap presence/absence recording
+- Copy-previous-quadrat and clear-ticks shortcuts
+- G02 semi-improved grassland indicator, typical-grass and injurious-weed highlighting based on the verified BEHTA source already documented in the app
+- Species identification confidence: Certain, Probable or Needs checking
+- Field completion panel with quadrat, GPS, species and identification-review status
+- Statistics for richness, mean richness, species frequency and indicators
+- End-of-survey review highlighting uncertain identifications and evidence requiring surveyor judgement
+- Numbered quadrat map
+- Local working-draft recovery on the device
+- CSV and GeoJSON export
+- Installable Progressive Web App (PWA) for phone/tablet use
 
-## Important methodology note
+## Methodology note
 
-This application is not an official Natural England product. It currently records field evidence without automatically applying habitat-specific BEHTA condition thresholds. Official scoring/condition logic should only be added against verified Natural England BEHTA guidance for the relevant feature code.
-
-Natural England/RPA guidance describes BEHTA as recording the condition and extent of environmental features to provide a baseline against which future progress can be assessed.
+This application is not an official Natural England product. It records field evidence and only applies habitat-specific automatic interpretation where the relevant rule set has been explicitly verified. Quadrat frequency is not automatically converted into DAFOR or an official BEHTA abundance class.
 
 ## Railway deployment
 
@@ -31,6 +31,6 @@ Node.js 20+ is required. The start command is:
 npm start
 ```
 
-For shared multi-user use, attach a PostgreSQL database and expose its `DATABASE_URL` to this service. Without PostgreSQL the application uses a local JSON file, which is not appropriate for durable multi-user production storage on an ephemeral deployment.
+The application uses PostgreSQL when `DATABASE_URL` is supplied, with a local JSON fallback. For durable shared use, attach a persistent database rather than relying on Railway's ephemeral application filesystem.
 
 Health endpoint: `/api/health`
