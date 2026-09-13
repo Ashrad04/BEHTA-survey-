@@ -3,6 +3,16 @@
   const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
+  function loadUiUpgrades(){
+    if(!document.querySelector('link[href="/ui-upgrades.css"]')){
+      const link=document.createElement('link');link.rel='stylesheet';link.href='/ui-upgrades.css';document.head.appendChild(link);
+    }
+    ['/term-illustrations.js','/app-navigation.js'].forEach(src=>{
+      if(document.querySelector(`script[src="${src}"]`)) return;
+      const script=document.createElement('script');script.src=src;script.async=false;document.body.appendChild(script);
+    });
+  }
+
   function addButton(){
     if(standalone() || document.getElementById('installAppBtn')) return;
     const header=document.querySelector('.topbar');
@@ -37,6 +47,7 @@
     document.body.appendChild(box);
   }
 
+  loadUiUpgrades();
   addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEvent=e;addButton();const b=document.getElementById('installAppBtn');if(b)b.hidden=false;});
   addEventListener('appinstalled',()=>{promptEvent=null;document.getElementById('installAppBtn')?.remove();});
   addEventListener('load',addButton);
