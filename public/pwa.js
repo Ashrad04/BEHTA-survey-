@@ -32,7 +32,7 @@
     document.getElementById('pwaInstallHelp')?.remove();
     const box=document.createElement('div');
     box.id='pwaInstallHelp'; box.className='pwa-install-help';
-    box.innerHTML='<strong>Install BEHTA Recorder</strong><span>In Safari, tap Share then <b>Add to Home Screen</b>.</span><button type="button">Close</button>';
+    box.innerHTML='<strong>Install Field Surveys</strong><span>In Safari, tap Share then <b>Add to Home Screen</b>.</span><button type="button">Close</button>';
     box.querySelector('button').onclick=()=>box.remove();
     document.body.appendChild(box);
   }
@@ -40,4 +40,5 @@
   addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEvent=e;addButton();const b=document.getElementById('installAppBtn');if(b)b.hidden=false;});
   addEventListener('appinstalled',()=>{promptEvent=null;document.getElementById('installAppBtn')?.remove();});
   addEventListener('load',addButton);
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 })();
