@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Grassland Field Surveys",
   "short_name": "Field Surveys",
-  "description": "Mobile grassland survey hub with BEHTA and rapid grassland assessment workflows.",
+  "description": "Mobile grassland survey hub with BEHTA, rapid grassland assessment and an interactive species identification companion.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -17,6 +17,7 @@
   "shortcuts": [
     {"name":"Survey types","short_name":"Surveys","url":"/","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
     {"name":"BEHTA grassland","short_name":"BEHTA","url":"/#behta","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
-    {"name":"Rapid assessment","short_name":"Rapid","url":"/#rapid","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]}
+    {"name":"Rapid assessment","short_name":"Rapid","url":"/#rapid","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
+    {"name":"Species identification","short_name":"Species ID","url":"/#species-id","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]}
   ]
 }
