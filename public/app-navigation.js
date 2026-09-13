@@ -90,7 +90,6 @@
     applying = true;
 
     try {
-      // The phone Back button should close a terminology overlay before leaving Species ID.
       if (previous?.view === 'species' && previous.modal === 'term' && target.view === 'species' && !target.modal) {
         const close = document.querySelector('#termClose');
         if (close) close.click();
@@ -99,7 +98,6 @@
         return;
       }
 
-      // When moving backwards through an identification key, use the key's own back action.
       if (previous?.view === 'species' && target.view === 'species' &&
           previous.speciesTab === 'key' && target.speciesTab === 'key' &&
           target.keyDepth < previous.keyDepth && document.body.classList.contains('species-id-mode')) {
@@ -155,14 +153,13 @@
     if (mark && !mark.querySelector('img')) {
       mark.textContent = '';
       const img = document.createElement('img');
-      img.src = '/app-icon.svg';
+      img.src = '/field-surveys-icon.svg';
       img.alt = '';
       img.setAttribute('aria-hidden', 'true');
       mark.appendChild(img);
     }
   }
 
-  // Convert existing in-app back buttons to browser-history back actions where a matching state exists.
   document.addEventListener('click', event => {
     const target = event.target.closest('#keyBack, #resultBack');
     if (!target || applying || lastState?.view !== 'species' || keyDepth <= 0) return;
