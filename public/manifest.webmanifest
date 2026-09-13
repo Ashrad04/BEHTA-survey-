@@ -1,9 +1,27 @@
 {
-  "name": "BEHTA Field Recorder",
+  "id": "/",
+  "name": "BEHTA Grassland Field Recorder",
   "short_name": "BEHTA",
+  "description": "Mobile grassland BEHTA field recorder for survey setup, quadrats, species frequency, mapping and field review.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone"],
   "background_color": "#eef3ef",
   "theme_color": "#214d35",
-  "description": "Mobile field recorder for BEHTA habitat baseline surveys and quadrats."
+  "orientation": "any",
+  "categories": ["productivity", "utilities", "education"],
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {"name":"Survey setup","short_name":"Survey","url":"/#survey","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
+    {"name":"Quadrats","short_name":"Quadrats","url":"/#quadrats","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]},
+    {"name":"Statistics","short_name":"Stats","url":"/#stats","icons":[{"src":"/app-icon.svg","sizes":"any","type":"image/svg+xml"}]}
+  ]
 }
