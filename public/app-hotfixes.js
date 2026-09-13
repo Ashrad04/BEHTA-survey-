@@ -70,7 +70,6 @@
     if(event.target.closest('#hubRapid,[data-open-rapid],[data-load]')) repairRapidStorage();
   },true);
 
-  // If a legacy/corrupt local record still causes a Rapid opening error, recover to the hub instead of leaving an apparently frozen screen.
   window.addEventListener('error',event=>{
     if(!document.body.classList.contains('rapid-mode')) return;
     const msg=String(event.message||'');
@@ -138,17 +137,26 @@
   };
 
   function addStructureLinks(){
-    const modal=document.getElementById('termModal'); const title=document.getElementById('termTitle'); const diagram=document.getElementById('termDiagram');
+    const modal=document.getElementById('termModal');
+    const title=document.getElementById('termTitle');
+    const diagram=document.getElementById('termDiagram');
     if(!modal||modal.hidden||!title||!diagram) return;
-    const query=PHOTO_QUERIES[title.textContent.trim()] || `${title.textContent.trim()} plant structure botany`;
+    const titleText=title.textContent.trim();
+    const query=PHOTO_QUERIES[titleText] || `${titleText} plant structure botany`;
     let box=modal.querySelector('.structure-photo-links');
-    if(!box){box=document.createElement('div');box.className='structure-photo-links';diagram.insertAdjacentElement('afterend',box);}
+    if(box?.dataset.query===query) return;
+    if(!box){
+      box=document.createElement('div');
+      box.className='structure-photo-links';
+      diagram.insertAdjacentElement('afterend',box);
+    }
+    box.dataset.query=query;
     box.innerHTML=`<div><strong>Real examples</strong><span>Open actual photographs of this structure to compare with the diagram.</span></div><div class="structure-photo-actions"><a target="_blank" rel="noopener noreferrer" href="https://commons.wikimedia.org/wiki/Special:MediaSearch?type=image&search=${encodeURIComponent(query)}">Wikimedia photos ↗</a><a target="_blank" rel="noopener noreferrer" href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}">More images ↗</a></div>`;
   }
 
+  // Term links are added once, immediately after the existing Species ID code opens the modal.
+  // Do not observe child-list mutations here: rewriting the helper itself would retrigger the observer indefinitely.
   document.addEventListener('click',event=>{
     if(event.target.closest('[data-term],.term-card')) setTimeout(addStructureLinks,0);
   });
-  const termObserver=new MutationObserver(addStructureLinks);
-  termObserver.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
 })();
