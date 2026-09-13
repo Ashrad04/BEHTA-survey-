@@ -1,5 +1,5 @@
-const CACHE='behta-field-v3';
-const SHELL=['/','/index.html','/styles.css','/behta-enhancements.css','/field-upgrades.css','/app.js','/behta-enhancements.js','/field-upgrades.js','/confidence-persistence.js','/pwa.js','/manifest.webmanifest','/app-icon.svg','/offline.html'];
+const CACHE='behta-field-v4';
+const SHELL=['/','/index.html','/styles.css','/behta-enhancements.css','/field-upgrades.css','/multi-survey.css','/app.js','/behta-enhancements.js','/field-upgrades.js','/confidence-persistence.js','/bng.js','/rapid-protocols.js','/multi-survey.js','/pwa.js','/manifest.webmanifest','/app-icon.svg','/offline.html'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
@@ -11,8 +11,10 @@ self.addEventListener('activate',event=>{
 
 function upgradedHtmlResponse(response){
   return response.text().then(html=>{
-    if(!html.includes('/field-upgrades.css')) html=html.replace('</head>','  <link rel="icon" href="/app-icon.svg" type="image/svg+xml">\n  <link rel="apple-touch-icon" href="/app-icon.svg">\n  <meta name="mobile-web-app-capable" content="yes">\n  <meta name="apple-mobile-web-app-capable" content="yes">\n  <meta name="apple-mobile-web-app-title" content="BEHTA">\n  <link rel="stylesheet" href="/field-upgrades.css">\n</head>');
+    if(!html.includes('/field-upgrades.css')) html=html.replace('</head>','  <link rel="icon" href="/app-icon.svg" type="image/svg+xml">\n  <link rel="apple-touch-icon" href="/app-icon.svg">\n  <meta name="mobile-web-app-capable" content="yes">\n  <meta name="apple-mobile-web-app-capable" content="yes">\n  <meta name="apple-mobile-web-app-title" content="Field Surveys">\n  <link rel="stylesheet" href="/field-upgrades.css">\n  <link rel="stylesheet" href="/multi-survey.css">\n</head>');
+    if(!html.includes('/multi-survey.css')) html=html.replace('</head>','  <link rel="stylesheet" href="/multi-survey.css">\n</head>');
     if(!html.includes('/field-upgrades.js')) html=html.replace('</body>','  <script src="/field-upgrades.js"></script>\n  <script src="/confidence-persistence.js"></script>\n  <script src="/pwa.js"></script>\n</body>');
+    if(!html.includes('/multi-survey.js')) html=html.replace('</body>','  <script src="/bng.js"></script>\n  <script src="/rapid-protocols.js"></script>\n  <script src="/multi-survey.js"></script>\n</body>');
     const headers=new Headers(response.headers);
     headers.set('content-type','text/html; charset=utf-8');
     headers.set('cache-control','no-store');
