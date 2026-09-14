@@ -1,7 +1,10 @@
 (() => {
   let promptEvent = null;
   const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const ua = navigator.userAgent || '';
+  const ios = /iphone|ipad|ipod/i.test(ua);
+  const android = /android/i.test(ua);
+  const chromeLike = /chrome|crios|edg|opr/i.test(ua);
 
   function loadUiUpgrades(){
     ['/ui-upgrades.css','/app-hotfixes.css'].forEach(href=>{
@@ -14,8 +17,21 @@
     });
   }
 
+  function installHelp(){
+    document.getElementById('pwaInstallHelp')?.remove();
+    const box=document.createElement('div');
+    box.id='pwaInstallHelp'; box.className='pwa-install-help';
+    let text='Open this page in Chrome, then use the browser menu and choose <b>Install app</b> or <b>Add to Home screen</b>.';
+    if(ios) text='In Safari, tap <b>Share</b> then <b>Add to Home Screen</b>.';
+    else if(android && chromeLike) text='In Chrome, tap the <b>⋮</b> menu then choose <b>Install app</b> or <b>Add to Home screen</b>. If you opened this inside another app, first choose <b>Open in Chrome</b>.';
+    else if(android) text='Open this page in Chrome, then tap the <b>⋮</b> menu and choose <b>Install app</b> or <b>Add to Home screen</b>.';
+    box.innerHTML=`<strong>Install Field Surveys</strong><span>${text}</span><button type="button">Close</button>`;
+    box.querySelector('button').onclick=()=>box.remove();
+    document.body.appendChild(box);
+  }
+
   function addButton(){
-    if(standalone() || document.getElementById('installAppBtn')) return;
+    if(standalone()) { document.getElementById('installAppBtn')?.remove(); return; }
     const header=document.querySelector('.topbar');
     if(!header) return;
     let actions=header.querySelector('.pwa-header-actions');
@@ -26,31 +42,30 @@
       if(state) actions.appendChild(state);
       header.appendChild(actions);
     }
-    const b=document.createElement('button');
-    b.id='installAppBtn'; b.type='button'; b.className='install-app-btn'; b.textContent='Install app';
-    b.hidden=!ios && !promptEvent;
-    b.addEventListener('click',async()=>{
-      if(ios && !promptEvent){ showIosHelp(); return; }
-      if(!promptEvent) return;
-      promptEvent.prompt();
-      try{ await promptEvent.userChoice; }catch{}
-      promptEvent=null; b.remove();
-    });
-    actions.insertBefore(b,actions.firstChild);
-  }
-
-  function showIosHelp(){
-    document.getElementById('pwaInstallHelp')?.remove();
-    const box=document.createElement('div');
-    box.id='pwaInstallHelp'; box.className='pwa-install-help';
-    box.innerHTML='<strong>Install Field Surveys</strong><span>In Safari, tap Share then <b>Add to Home Screen</b>.</span><button type="button">Close</button>';
-    box.querySelector('button').onclick=()=>box.remove();
-    document.body.appendChild(box);
+    let b=document.getElementById('installAppBtn');
+    if(!b){
+      b=document.createElement('button');
+      b.id='installAppBtn'; b.type='button'; b.className='install-app-btn'; b.textContent='Install app';
+      b.addEventListener('click',async()=>{
+        if(promptEvent){
+          promptEvent.prompt();
+          try{ await promptEvent.userChoice; }catch{}
+          promptEvent=null;
+          if(standalone()) b.remove();
+          return;
+        }
+        installHelp();
+      });
+      actions.insertBefore(b,actions.firstChild);
+    }
+    b.hidden=false;
+    b.title=promptEvent?'Install Field Surveys':'Show installation instructions';
   }
 
   loadUiUpgrades();
-  addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEvent=e;addButton();const b=document.getElementById('installAppBtn');if(b)b.hidden=false;});
-  addEventListener('appinstalled',()=>{promptEvent=null;document.getElementById('installAppBtn')?.remove();});
+  addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEvent=e;addButton();});
+  addEventListener('appinstalled',()=>{promptEvent=null;document.getElementById('installAppBtn')?.remove();document.getElementById('pwaInstallHelp')?.remove();});
   addEventListener('load',addButton);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)addButton();});
   if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
 })();
