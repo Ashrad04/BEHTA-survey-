@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Field Surveys small grassland quadrat icon">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d5937"/><stop offset="1" stop-color="#063d28"/></linearGradient></defs>
+  <rect width="192" height="192" rx="42" fill="url(#bg)"/>
+  <g fill="#7fa956"><path d="M49 152Q55 87 82 46Q76 111 73 152Z"/><path d="M83 152Q89 90 108 59Q103 118 101 152Z"/><path d="M112 152Q119 95 143 68Q134 122 131 152Z"/></g>
+  <g fill="none" stroke="#f7f3e8" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M39 139L48 65H144L153 139Z"/><path d="M39 139H153"/></g>
+  <g fill="#f7f3e8"><rect x="34" y="134" width="20" height="20" rx="6"/><rect x="138" y="134" width="20" height="20" rx="6"/><rect x="43" y="60" width="20" height="20" rx="6"/><rect x="129" y="60" width="20" height="20" rx="6"/></g>
+  <g fill="none" stroke="#f2bd4c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M96 148Q96 103 107 38"/><path d="M106 57l-10-10M108 52l10-12M104 69l-10-10M108 64l11-12"/></g>
+</svg>
