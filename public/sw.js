@@ -1,4 +1,4 @@
-const CACHE='behta-field-v12';
+const CACHE='behta-field-v13';
 const SHELL=['/','/index.html','/styles.css','/behta-enhancements.css','/field-upgrades.css','/multi-survey.css','/species-id.css','/ui-upgrades.css','/app-hotfixes.css','/app.js','/behta-enhancements.js','/field-upgrades.js','/confidence-persistence.js','/bng.js','/rapid-protocols.js','/multi-survey.js','/species-id.js','/term-illustrations.js','/app-hotfixes.js','/app-navigation.js','/pwa.js','/manifest.webmanifest','/app-icon.svg','/field-surveys-icon.svg','/field-surveys-icon-small.svg','/field-surveys-brand.svg','/offline.html'];
 
 self.addEventListener('install',event=>{
@@ -46,11 +46,8 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
-  event.respondWith(caches.match(req).then(cached=>{
-    const network=fetch(req).then(res=>{
-      if(res.ok){const clone=res.clone();caches.open(CACHE).then(cache=>cache.put(req,clone));}
-      return res;
-    }).catch(()=>cached);
-    return cached||network;
-  }));
+  event.respondWith(fetch(req).then(res=>{
+    if(res.ok){const clone=res.clone();caches.open(CACHE).then(cache=>cache.put(req,clone));}
+    return res;
+  }).catch(()=>caches.match(req)));
 });
