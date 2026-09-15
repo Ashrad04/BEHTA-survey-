@@ -7,11 +7,11 @@
   const chromeLike = /chrome|crios|edg|opr/i.test(ua);
 
   function loadUiUpgrades(){
-    ['/ui-upgrades.css','/app-hotfixes.css'].forEach(href=>{
+    ['/ui-upgrades.css','/app-hotfixes.css','/field-species-tools.css'].forEach(href=>{
       if(document.querySelector(`link[href="${href}"]`)) return;
       const link=document.createElement('link');link.rel='stylesheet';link.href=href;document.head.appendChild(link);
     });
-    ['/term-illustrations.js','/app-hotfixes.js','/app-navigation.js','/species-fallback.js'].forEach(src=>{
+    ['/term-illustrations.js','/app-hotfixes.js','/app-navigation.js','/species-fallback.js','/field-species-tools.js'].forEach(src=>{
       if(document.querySelector(`script[src="${src}"]`)) return;
       const script=document.createElement('script');script.src=src;script.async=false;document.body.appendChild(script);
     });
