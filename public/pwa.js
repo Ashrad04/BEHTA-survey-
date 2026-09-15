@@ -17,6 +17,16 @@
     });
   }
 
+  function showLaunchBrand(){
+    if(!standalone() || document.getElementById('fieldLaunchSplash')) return;
+    const splash=document.createElement('div');
+    splash.id='fieldLaunchSplash'; splash.className='field-launch-splash';
+    splash.innerHTML='<div class="field-launch-card"><img src="/field-surveys-final-v3.svg" alt=""><strong>Field Surveys</strong><span>Grassland field surveys</span></div>';
+    document.body.appendChild(splash);
+    requestAnimationFrame(()=>splash.classList.add('show'));
+    setTimeout(()=>{splash.classList.remove('show');setTimeout(()=>splash.remove(),220);},850);
+  }
+
   function installHelp(){
     document.getElementById('pwaInstallHelp')?.remove();
     const box=document.createElement('div');
@@ -32,37 +42,16 @@
 
   function addButton(){
     if(standalone()) { document.getElementById('installAppBtn')?.remove(); return; }
-    const header=document.querySelector('.topbar');
-    if(!header) return;
+    const header=document.querySelector('.topbar'); if(!header) return;
     let actions=header.querySelector('.pwa-header-actions');
-    if(!actions){
-      actions=document.createElement('div');
-      actions.className='pwa-header-actions';
-      const state=document.getElementById('onlineState');
-      if(state) actions.appendChild(state);
-      header.appendChild(actions);
-    }
+    if(!actions){actions=document.createElement('div');actions.className='pwa-header-actions';const state=document.getElementById('onlineState');if(state)actions.appendChild(state);header.appendChild(actions);}
     let b=document.getElementById('installAppBtn');
-    if(!b){
-      b=document.createElement('button');
-      b.id='installAppBtn'; b.type='button'; b.className='install-app-btn'; b.textContent='Install app';
-      b.addEventListener('click',async()=>{
-        if(promptEvent){
-          promptEvent.prompt();
-          try{ await promptEvent.userChoice; }catch{}
-          promptEvent=null;
-          if(standalone()) b.remove();
-          return;
-        }
-        installHelp();
-      });
-      actions.insertBefore(b,actions.firstChild);
-    }
-    b.hidden=false;
-    b.title=promptEvent?'Install Field Surveys':'Show installation instructions';
+    if(!b){b=document.createElement('button');b.id='installAppBtn';b.type='button';b.className='install-app-btn';b.textContent='Install app';b.addEventListener('click',async()=>{if(promptEvent){promptEvent.prompt();try{await promptEvent.userChoice;}catch{}promptEvent=null;if(standalone())b.remove();return;}installHelp();});actions.insertBefore(b,actions.firstChild);}
+    b.hidden=false; b.title=promptEvent?'Install Field Surveys':'Show installation instructions';
   }
 
   loadUiUpgrades();
+  showLaunchBrand();
   addEventListener('beforeinstallprompt',e=>{e.preventDefault();promptEvent=e;addButton();});
   addEventListener('appinstalled',()=>{promptEvent=null;document.getElementById('installAppBtn')?.remove();document.getElementById('pwaInstallHelp')?.remove();});
   addEventListener('load',addButton);
