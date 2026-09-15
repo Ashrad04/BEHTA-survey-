@@ -1,5 +1,5 @@
-const CACHE='behta-field-v14';
-const SHELL=['/','/index.html','/styles.css','/behta-enhancements.css','/field-upgrades.css','/multi-survey.css','/species-id.css','/ui-upgrades.css','/app-hotfixes.css','/app.js','/behta-enhancements.js','/field-upgrades.js','/confidence-persistence.js','/bng.js','/rapid-protocols.js','/multi-survey.js','/species-id.js','/term-illustrations.js','/app-hotfixes.js','/app-navigation.js','/pwa.js','/manifest.webmanifest','/app-icon.svg','/field-surveys-quadrat-v2.svg','/field-surveys-quadrat-small-v2.svg','/field-surveys-brand.svg','/offline.html'];
+const CACHE='behta-field-v15';
+const SHELL=['/','/index.html','/styles.css','/behta-enhancements.css','/field-upgrades.css','/multi-survey.css','/species-id.css','/ui-upgrades.css','/app-hotfixes.css','/app.js','/behta-enhancements.js','/field-upgrades.js','/confidence-persistence.js','/bng.js','/rapid-protocols.js','/multi-survey.js','/species-id.js','/term-illustrations.js','/app-hotfixes.js','/app-navigation.js','/species-fallback.js','/pwa.js','/manifest.webmanifest','/app-icon.svg','/field-surveys-quadrat-v2.svg','/field-surveys-quadrat-small-v2.svg','/field-surveys-brand.svg','/offline.html'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
@@ -22,6 +22,7 @@ function upgradedHtmlResponse(response){
     if(!html.includes('/term-illustrations.js')) html=html.replace('</body>','  <script src="/term-illustrations.js"></script>\n</body>');
     if(!html.includes('/app-hotfixes.js')) html=html.replace('</body>','  <script src="/app-hotfixes.js"></script>\n</body>');
     if(!html.includes('/app-navigation.js')) html=html.replace('</body>','  <script src="/app-navigation.js"></script>\n</body>');
+    if(!html.includes('/species-fallback.js')) html=html.replace('</body>','  <script src="/species-fallback.js"></script>\n</body>');
     const headers=new Headers(response.headers);
     headers.set('content-type','text/html; charset=utf-8');
     headers.set('cache-control','no-store');
