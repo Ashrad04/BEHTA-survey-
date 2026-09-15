@@ -1,254 +1,214 @@
 (() => {
-  const $id = id => document.getElementById(id);
+  const byId = id => document.getElementById(id);
+  const escHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const keyFor = s => String(s?.scientific_name || s?.common_name || '').trim().toLowerCase();
+  const labelFor = s => String(s?.common_name || s?.scientific_name || 'Unnamed species').trim();
 
-  function safeNormalise(raw) {
-    try { return normaliseSpecies(raw || {}); }
-    catch { return raw || {}; }
-  }
-
-  function safeFrequency(species) {
-    try { return speciesFrequency(species); }
-    catch { return 0; }
-  }
-
-  function safeRole(species) {
+  function surveyPoolDirect(){
+    const map = new Map();
     try {
-      if (typeof classifyBehtaSpecies === 'function') return classifyBehtaSpecies(species) || {};
+      (currentSurvey?.quadrats || []).forEach(q => (q.species || []).forEach(raw => {
+        const s = raw && typeof raw === 'object' ? raw : {};
+        const key = keyFor(s);
+        if (!key) return;
+        const previous = map.get(key) || {};
+        map.set(key, {
+          ...previous,
+          ...s,
+          common_name: String(s.common_name || previous.common_name || ''),
+          scientific_name: String(s.scientific_name || previous.scientific_name || ''),
+          indicator: String(s.indicator || previous.indicator || 'Neutral / not set')
+        });
+      }));
     } catch {}
-    return {};
+    return [...map.values()];
   }
 
-  function speciesLabel(species) {
-    return String(species?.common_name || species?.scientific_name || 'Unnamed species').trim();
+  function currentPresenceDirect(){
+    try {
+      const q = currentSurvey?.quadrats?.[editingQuadratIndex];
+      return new Set((q?.species || []).map(keyFor).filter(Boolean));
+    } catch { return new Set(); }
   }
 
-  function buildSpeciesRow(species, present, quadratTotal) {
-    const key = speciesKey(species);
-    const row = document.createElement('button');
-    row.type = 'button';
-    row.className = 'species-chip field-species-row';
-    row.dataset.key = key;
-    row.classList.toggle('present', present.has(key));
-    row.setAttribute('aria-pressed', present.has(key) ? 'true' : 'false');
-
-    if (species.indicator === 'Positive') row.classList.add('positive');
-    if (species.indicator === 'Negative') row.classList.add('negative');
-
-    const role = safeRole(species);
-    if (role.role) row.classList.add(`behta-${role.role}`);
-
-    const tick = document.createElement('span');
-    tick.className = 'tick';
-    tick.textContent = present.has(key) ? '✓' : '+';
-
-    const names = document.createElement('span');
-    names.className = 'field-species-names';
-    const common = document.createElement('strong');
-    common.textContent = speciesLabel(species);
-    names.appendChild(common);
-
-    if (species.scientific_name && species.common_name) {
-      const scientific = document.createElement('small');
-      scientific.textContent = species.scientific_name;
-      names.appendChild(scientific);
-    }
-
-    if (role.label && role.role && !['other','unclassified'].includes(role.role)) {
-      const badge = document.createElement('small');
-      badge.className = `behta-badge behta-${role.role}`;
-      badge.textContent = role.label;
-      names.appendChild(badge);
-    }
-
-    const occurrence = document.createElement('em');
-    const count = safeFrequency(species);
-    occurrence.className = 'field-species-frequency';
-    occurrence.textContent = quadratTotal ? `${count}/${quadratTotal}` : String(count);
-    occurrence.title = 'Quadrats containing this species';
-
-    row.append(tick, names, occurrence);
-    row.addEventListener('click', () => {
-      row.classList.toggle('present');
-      const isPresent = row.classList.contains('present');
-      tick.textContent = isPresent ? '✓' : '+';
-      row.setAttribute('aria-pressed', isPresent ? 'true' : 'false');
-      try { updateQuadratSummary(); } catch {}
-    });
-    return row;
+  function frequencyDirect(species){
+    const key = keyFor(species);
+    if (!key) return 0;
+    try {
+      return (currentSurvey?.quadrats || []).filter(q => (q.species || []).some(s => keyFor(s) === key)).length;
+    } catch { return 0; }
   }
 
-  function renderFieldSpeciesPool() {
-    if (typeof editingQuadratIndex === 'undefined' || editingQuadratIndex == null) return;
-    const pool = $id('speciesPool');
-    const counter = $id('poolCount');
-    if (!pool || !counter) return;
+  function syncGlobalPool(list){
+    try {
+      if (Array.isArray(speciesPool)) {
+        speciesPool.length = 0;
+        list.forEach(s => speciesPool.push(s));
+      }
+    } catch {}
+  }
 
-    const filter = ($id('speciesFilter')?.value || '').trim().toLowerCase();
-    const sort = $id('speciesSort')?.value || 'frequency';
-    let present;
-    try { present = currentPresenceKeys(); } catch { present = new Set(); }
+  function renderFieldSpeciesPool(){
+    let index = null;
+    try { index = editingQuadratIndex; } catch { return; }
+    if (index == null) return;
 
-    let list = Array.isArray(speciesPool) ? speciesPool.map(safeNormalise) : [];
-    list = list.filter(s => `${s.common_name || ''} ${s.scientific_name || ''}`.toLowerCase().includes(filter));
+    const container = byId('speciesPool');
+    const counter = byId('poolCount');
+    if (!container || !counter) return;
+
+    const all = surveyPoolDirect();
+    syncGlobalPool(all);
+    const present = currentPresenceDirect();
+    const filter = String(byId('speciesFilter')?.value || '').trim().toLowerCase();
+    const sort = byId('speciesSort')?.value || 'frequency';
+    let list = all.filter(s => `${s.common_name || ''} ${s.scientific_name || ''}`.toLowerCase().includes(filter));
 
     if (sort === 'alpha') {
-      list.sort((a,b) => speciesLabel(a).localeCompare(speciesLabel(b)));
+      list.sort((a,b) => labelFor(a).localeCompare(labelFor(b)));
     } else if (sort === 'indicator') {
       const rank = s => s.indicator === 'Positive' ? 0 : s.indicator === 'Negative' ? 1 : 2;
-      list.sort((a,b) => rank(a) - rank(b) || speciesLabel(a).localeCompare(speciesLabel(b)));
+      list.sort((a,b) => rank(a) - rank(b) || labelFor(a).localeCompare(labelFor(b)));
     } else {
-      list.sort((a,b) => safeFrequency(b) - safeFrequency(a) || speciesLabel(a).localeCompare(speciesLabel(b)));
+      list.sort((a,b) => frequencyDirect(b) - frequencyDirect(a) || labelFor(a).localeCompare(labelFor(b)));
     }
 
-    counter.textContent = `${Array.isArray(speciesPool) ? speciesPool.length : 0} in pool`;
-    pool.classList.add('field-species-list');
-    pool.replaceChildren();
+    counter.textContent = `${all.length} in pool`;
+    container.className = 'species-pool field-species-list';
 
     if (!list.length) {
-      const empty = document.createElement('div');
-      empty.className = 'empty mini-empty field-species-empty';
-      empty.textContent = filter ? 'No matching survey species.' : 'No survey species yet. Add the first species below.';
-      pool.appendChild(empty);
+      container.innerHTML = `<div class="empty mini-empty field-species-empty">${filter ? 'No matching survey species.' : 'No survey species yet. Add the first species below.'}</div>`;
       return;
     }
 
-    const total = currentSurvey?.quadrats?.length || 0;
-    list.forEach(species => pool.appendChild(buildSpeciesRow(species, present, total)));
+    const qTotal = Math.max(1, currentSurvey?.quadrats?.length || 1);
+    container.innerHTML = list.map(s => {
+      const key = keyFor(s);
+      const isPresent = present.has(key);
+      const indicatorClass = s.indicator === 'Positive' ? ' positive' : s.indicator === 'Negative' ? ' negative' : '';
+      const scientific = s.scientific_name && s.common_name ? `<small>${escHtml(s.scientific_name)}</small>` : '';
+      const freq = frequencyDirect(s);
+      return `<button type="button" class="species-chip field-species-row${isPresent ? ' present' : ''}${indicatorClass}" data-key="${escHtml(key)}" aria-pressed="${isPresent ? 'true' : 'false'}"><span class="tick">${isPresent ? '✓' : '+'}</span><span class="field-species-names"><strong>${escHtml(labelFor(s))}</strong>${scientific}</span><em class="field-species-frequency">${freq}/${qTotal}</em></button>`;
+    }).join('');
+
+    container.querySelectorAll('.field-species-row').forEach(row => {
+      row.addEventListener('click', () => {
+        row.classList.toggle('present');
+        const on = row.classList.contains('present');
+        row.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const tick = row.querySelector('.tick');
+        if (tick) tick.textContent = on ? '✓' : '+';
+        try { updateQuadratSummary(); } catch {}
+      });
+    });
   }
 
-  // Replace the layered renderer with a field-first list renderer.
+  // Make all future quadrat renders use the independent field checklist.
   try { renderSpeciesPool = renderFieldSpeciesPool; } catch {}
 
-  function tidyShortcuts() {
-    const copy = $id('copyPreviousSpecies');
-    const row = copy?.closest('.field-shortcuts') || $id('clearQuadratSpecies')?.closest('.field-shortcuts');
+  function tidyShortcuts(){
+    const copy = byId('copyPreviousSpecies');
+    const clear = byId('clearQuadratSpecies');
+    const row = copy?.closest('.field-shortcuts') || clear?.closest('.field-shortcuts');
     copy?.remove();
-    const clear = $id('clearQuadratSpecies');
     if (clear) {
       clear.textContent = 'Clear current ticks';
       clear.classList.add('clear-only');
     }
-    if (row) row.classList.add('field-shortcuts-clear-only');
+    row?.classList.add('field-shortcuts-clear-only');
   }
 
-  async function copyText(text, button) {
+  async function copyText(text, button){
     let ok = false;
-    try {
-      await navigator.clipboard.writeText(text);
-      ok = true;
-    } catch {
+    try { await navigator.clipboard.writeText(text); ok = true; }
+    catch {
       try {
-        const t = document.createElement('textarea');
-        t.value = text; t.setAttribute('readonly','');
-        t.style.position = 'fixed'; t.style.opacity = '0';
-        document.body.appendChild(t); t.select();
-        ok = document.execCommand('copy'); t.remove();
+        const area = document.createElement('textarea');
+        area.value = text; area.readOnly = true; area.style.position='fixed'; area.style.opacity='0';
+        document.body.appendChild(area); area.select(); ok = document.execCommand('copy'); area.remove();
       } catch {}
     }
     if (button) {
       const old = button.textContent;
       button.textContent = ok ? 'Copied ✓' : 'Copy failed';
-      setTimeout(() => button.textContent = old, 1300);
+      setTimeout(() => button.textContent = old, 1200);
     }
   }
 
-  function renderLookupResults(results) {
-    const out = $id('taxonLookupResults');
+  function renderLookupResults(results){
+    const out = byId('taxonLookupResults');
     if (!out) return;
-    out.replaceChildren();
-    if (!results.length) {
+    const usable = (results || []).filter(r => r && r.name).slice(0,8);
+    if (!usable.length) {
       out.innerHTML = '<div class="taxon-lookup-empty">No plant species matches found.</div>';
       return;
     }
-    results.forEach(result => {
-      const scientific = String(result.name || '').trim();
-      if (!scientific) return;
-      const common = String(result.preferred_common_name || result.matched_term || '').trim();
-      const item = document.createElement('div');
-      item.className = 'taxon-result';
-      const names = document.createElement('div');
-      names.className = 'taxon-result-names';
-      const commonEl = document.createElement('strong');
-      commonEl.textContent = common || scientific;
-      const scientificEl = document.createElement('em');
-      scientificEl.textContent = scientific;
-      names.append(commonEl, scientificEl);
-
-      const actions = document.createElement('div');
-      actions.className = 'taxon-result-actions';
-      const use = document.createElement('button');
-      use.type = 'button'; use.textContent = 'Use';
-      use.addEventListener('click', () => {
-        if ($id('newScientific')) $id('newScientific').value = scientific;
-        if ($id('newCommon') && !$id('newCommon').value.trim() && common) $id('newCommon').value = common;
-        $id('newScientific')?.focus();
-      });
-      const copy = document.createElement('button');
-      copy.type = 'button'; copy.textContent = 'Copy';
-      copy.addEventListener('click', () => copyText(scientific, copy));
-      actions.append(use, copy);
-      item.append(names, actions);
-      out.appendChild(item);
+    out.innerHTML = usable.map((r,i) => {
+      const scientific = String(r.name || '').trim();
+      const common = String(r.preferred_common_name || r.matched_term || '').trim();
+      return `<div class="taxon-result" data-result="${i}"><div class="taxon-result-names"><strong>${escHtml(common || scientific)}</strong><em>${escHtml(scientific)}</em></div><div class="taxon-result-actions"><button type="button" data-use="${i}">Use</button><button type="button" data-copy="${i}">Copy</button></div></div>`;
+    }).join('');
+    out.querySelectorAll('[data-use]').forEach(btn => btn.onclick = () => {
+      const r = usable[Number(btn.dataset.use)];
+      if (!r) return;
+      const common = String(r.preferred_common_name || r.matched_term || '').trim();
+      if (byId('newScientific')) byId('newScientific').value = r.name || '';
+      if (byId('newCommon') && !byId('newCommon').value.trim() && common) byId('newCommon').value = common;
+      byId('newScientific')?.focus();
+    });
+    out.querySelectorAll('[data-copy]').forEach(btn => btn.onclick = () => {
+      const r = usable[Number(btn.dataset.copy)];
+      if (r?.name) copyText(r.name, btn);
     });
   }
 
-  async function searchTaxa() {
-    const input = $id('taxonLookupQuery');
-    const out = $id('taxonLookupResults');
-    const button = $id('taxonLookupButton');
+  async function searchTaxa(){
+    const input = byId('taxonLookupQuery');
+    const out = byId('taxonLookupResults');
+    const button = byId('taxonLookupButton');
     if (!input || !out || !button) return;
-    const query = input.value.trim() || $id('newCommon')?.value.trim() || $id('newScientific')?.value.trim() || '';
-    if (!query) {
-      input.focus();
-      out.innerHTML = '<div class="taxon-lookup-empty">Enter a common or scientific name first.</div>';
-      return;
-    }
-    input.value = query;
-    button.disabled = true;
-    button.textContent = 'Searching…';
-    out.innerHTML = '<div class="taxon-lookup-empty">Searching plant species…</div>';
+    const query = input.value.trim() || byId('newCommon')?.value.trim() || byId('newScientific')?.value.trim() || '';
+    if (!query) { out.innerHTML='<div class="taxon-lookup-empty">Enter a common or scientific name first.</div>'; input.focus(); return; }
+    input.value=query; button.disabled=true; button.textContent='Searching…';
+    out.innerHTML='<div class="taxon-lookup-empty">Searching plant species…</div>';
     try {
-      const url = `https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(query)}&taxon_id=47126&rank=species&per_page=8`;
-      const response = await fetch(url, {headers:{'Accept':'application/json'}});
-      if (!response.ok) throw new Error('Lookup unavailable');
+      const response = await fetch(`https://api.inaturalist.org/v1/taxa/autocomplete?q=${encodeURIComponent(query)}&taxon_id=47126&rank=species&per_page=8`, {headers:{Accept:'application/json'}});
+      if (!response.ok) throw new Error();
       const data = await response.json();
       renderLookupResults(Array.isArray(data.results) ? data.results : []);
     } catch {
-      out.innerHTML = '<div class="taxon-lookup-empty">Scientific-name lookup is unavailable right now. You can still enter the name manually.</div>';
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Search';
-    }
+      out.innerHTML='<div class="taxon-lookup-empty">Scientific-name lookup is unavailable right now. You can still enter the name manually.</div>';
+    } finally { button.disabled=false; button.textContent='Search'; }
   }
 
-  function installLookup() {
-    const form = $id('newSpeciesForm');
-    if (!form || $id('taxonLookup')) return;
+  function installLookup(){
+    const form = byId('newSpeciesForm');
+    if (!form || byId('taxonLookup')) return;
     const box = document.createElement('div');
-    box.id = 'taxonLookup';
-    box.className = 'taxon-lookup';
-    box.innerHTML = `
-      <div class="taxon-lookup-head"><strong>Scientific name lookup</strong><span>Search plants, then use or copy the scientific name.</span></div>
-      <div class="taxon-lookup-controls"><input id="taxonLookupQuery" type="search" autocomplete="off" placeholder="e.g. red clover"><button id="taxonLookupButton" type="button">Search</button></div>
-      <div id="taxonLookupResults" class="taxon-lookup-results"></div>`;
-    const grid = form.querySelector('.grid.two');
-    if (grid) grid.insertAdjacentElement('afterend', box);
-    else form.prepend(box);
-    $id('taxonLookupButton')?.addEventListener('click', searchTaxa);
-    $id('taxonLookupQuery')?.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchTaxa(); } });
+    box.id='taxonLookup'; box.className='taxon-lookup';
+    box.innerHTML='<div class="taxon-lookup-head"><strong>Scientific name lookup</strong><span>Search by common or scientific name, then use or copy the scientific name.</span></div><div class="taxon-lookup-controls"><input id="taxonLookupQuery" type="search" autocomplete="off" placeholder="e.g. red clover"><button id="taxonLookupButton" type="button">Search</button></div><div id="taxonLookupResults" class="taxon-lookup-results"></div>';
+    const grid=form.querySelector('.grid.two');
+    if (grid) grid.insertAdjacentElement('afterend',box); else form.prepend(box);
+    byId('taxonLookupButton')?.addEventListener('click',searchTaxa);
+    byId('taxonLookupQuery')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchTaxa();}});
   }
 
-  function refresh() {
+  function refresh(){
     tidyShortcuts();
     installLookup();
-    if (typeof editingQuadratIndex !== 'undefined' && editingQuadratIndex != null) renderFieldSpeciesPool();
+    renderFieldSpeciesPool();
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', refresh);
-  else refresh();
-  setTimeout(refresh, 250);
-
+  byId('speciesFilter')?.addEventListener('input', () => setTimeout(renderFieldSpeciesPool,0));
+  byId('speciesSort')?.addEventListener('change', () => setTimeout(renderFieldSpeciesPool,0));
   document.addEventListener('click', e => {
-    if (e.target.closest('#addSpecies,#confirmSpecies,#clearQuadratSpecies,#saveNext,[data-q]')) setTimeout(refresh, 0);
+    if (e.target.closest('#addQuadrat,[data-q],#addSpecies,#confirmSpecies,#clearQuadratSpecies,#saveNext,.tab[data-tab="quadrats"]')) setTimeout(refresh,20);
   });
+
+  const editor = byId('quadratEditor');
+  if (editor) new MutationObserver(() => { if (!editor.classList.contains('hidden')) setTimeout(refresh,0); }).observe(editor,{attributes:true,attributeFilter:['class']});
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',refresh); else refresh();
+  setTimeout(refresh,250);
+  setTimeout(refresh,900);
 })();
